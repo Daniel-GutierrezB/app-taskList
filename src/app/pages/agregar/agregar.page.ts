@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit , ViewChild} from '@angular/core';
 import { DeseosService } from '../../services/deseos.service';
 import { ActivatedRoute } from '@angular/router';
 import { Lista } from '../../models/lista.model';
 import { Tarea } from '../../models/tareas.model';
+import { AlertController, IonList } from '@ionic/angular';
+import { ListaItem } from '../../../../../05-deseos-test/src/app/models/lista-item.model';
 
 @Component({
   selector: 'app-agregar',
@@ -14,8 +16,10 @@ export class AgregarPage implements OnInit {
   lista: Lista;
   nombreTarea: string = '';
 
+  @ViewChild( 'tarea' ) tarea: IonList;
   constructor(private deseosService: DeseosService,
-              private route: ActivatedRoute) {
+              private route: ActivatedRoute,
+              private alertCtrl: AlertController) {
 
 
     const listaId = this.route.snapshot.paramMap.get('listaId');
@@ -54,6 +58,42 @@ export class AgregarPage implements OnInit {
     }
 
     this.deseosService.guardarStorage();
+  }
+
+  async editarTarea( tarea: ListaItem ) {
+
+    const alert = await this.alertCtrl.create({
+      header: 'Editar Tarea',
+      inputs: [
+        {
+          name: 'descripcion',
+          type: 'text',
+          value: tarea.desc,
+          placeholder: 'Nombre de la tarea'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          handler: () => {
+            this.tarea.closeSlidingItems();
+          }
+        },
+        {
+          text: 'Actualizar',
+          handler: ( data ) => {
+            if ( data.descripcion.lenght === 0) {
+              return;
+            }
+          tarea.desc = data.descripcion; 
+          this.deseosService.guardarStorage();
+          this.tarea.closeSlidingItems();
+          }
+        }
+      ]
+    });
+    alert.present();
   }
 
   borrar(i: number) {
